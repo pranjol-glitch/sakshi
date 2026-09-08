@@ -1,0 +1,493 @@
+
+
+Khushi bouquet match · 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khushi's Bouquet Match</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF4EE;
+    --rose:#E39AA0;
+    --rose-deep:#C97B84;
+    --sage:#8FA893;
+    --lavender:#B79CD4;
+    --plum:#4E3346;
+    --gold:#D3A857;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(183,156,212,0.25), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(227,154,160,0.3), transparent 45%),
+      var(--cream);
+    font-family:'Quicksand', sans-serif;
+    color:var(--plum);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 16px 60px;
+  }
+  .title-wrap{
+    text-align:center;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:clamp(28px, 6vw, 42px);
+    margin:0;
+    color:var(--rose-deep);
+    letter-spacing:0.5px;
+  }
+  .subtitle{
+    margin:6px 0 0;
+    font-size:14px;
+    color:var(--plum);
+    opacity:0.75;
+  }
+  .hud{
+    display:flex;
+    gap:28px;
+    margin:22px 0 18px;
+    align-items:center;
+  }
+  .hud-item{
+    text-align:center;
+  }
+  .hud-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--sage);
+    font-weight:700;
+  }
+  .hud-value{
+    font-family:'Playfair Display', serif;
+    font-size:26px;
+    font-weight:700;
+    color:var(--plum);
+  }
+  .goal-bar{
+    width:220px;
+    height:8px;
+    border-radius:20px;
+    background:rgba(143,168,147,0.25);
+    overflow:hidden;
+    margin-top:6px;
+  }
+  .goal-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--rose), var(--gold));
+    transition:width 0.4s ease;
+  }
+  #board{
+    display:grid;
+    grid-template-columns:repeat(6, 1fr);
+    gap:6px;
+    background:var(--card);
+    padding:14px;
+    border-radius:22px;
+    box-shadow:0 20px 40px -20px rgba(78,51,70,0.35), 0 0 0 1px rgba(78,51,70,0.05);
+  }
+  .tile{
+    width:52px;
+    height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    border-radius:14px;
+    background:rgba(251,244,238,0.7);
+    cursor:pointer;
+    user-select:none;
+    transition:transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .tile:hover{
+    transform:translateY(-2px);
+    background:rgba(227,154,160,0.18);
+  }
+  .tile.selected{
+    background:rgba(183,156,212,0.35);
+    box-shadow:inset 0 0 0 2px var(--lavender);
+    transform:scale(0.94);
+  }
+  .tile.matched{
+    animation:pop 0.35s ease forwards;
+  }
+  .tile.falling{
+    animation:none;
+  }
+  @keyframes pop{
+    0%{transform:scale(1); opacity:1;}
+    60%{transform:scale(1.3); opacity:0.6;}
+    100%{transform:scale(0.2); opacity:0;}
+  }
+  .footer-note{
+    margin-top:20px;
+    font-size:13px;
+    color:var(--plum);
+    opacity:0.6;
+    text-align:center;
+    max-width:320px;
+  }
+  #resetBtn{
+    margin-top:16px;
+    background:none;
+    border:1.5px solid var(--rose-deep);
+    color:var(--rose-deep);
+    padding:8px 18px;
+    border-radius:30px;
+    font-family:'Quicksand', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+    transition:background 0.2s ease, color 0.2s ease;
+  }
+  #resetBtn:hover{
+    background:var(--rose-deep);
+    color:white;
+  }
+ 
+  /* Love note modal */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(78,51,70,0.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:50;
+    padding:20px;
+    backdrop-filter:blur(2px);
+  }
+  .overlay.show{
+    display:flex;
+  }
+  .note-card{
+    background:var(--card);
+    border-radius:24px;
+    max-width:420px;
+    width:100%;
+    padding:36px 32px 30px;
+    text-align:center;
+    position:relative;
+    box-shadow:0 30px 60px -20px rgba(78,51,70,0.5);
+    animation:riseIn 0.5s cubic-bezier(.2,.9,.3,1.2);
+  }
+  @keyframes riseIn{
+    from{opacity:0; transform:translateY(30px) scale(0.95);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  .note-bouquet{
+    font-size:44px;
+    margin-bottom:6px;
+  }
+  .note-photo{
+    width:100%;
+    max-height:260px;
+    object-fit:cover;
+    border-radius:16px;
+    margin:4px 0 16px;
+    box-shadow:0 10px 24px -12px rgba(78,51,70,0.4);
+  }
+  .note-heading{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    font-weight:600;
+    font-size:24px;
+    color:var(--rose-deep);
+    margin:4px 0 14px;
+  }
+  .note-body{
+    font-size:15px;
+    line-height:1.7;
+    color:var(--plum);
+    text-align:left;
+    white-space:pre-line;
+  }
+  .note-close{
+    margin-top:22px;
+    background:var(--rose-deep);
+    color:white;
+    border:none;
+    padding:10px 26px;
+    border-radius:30px;
+    font-family:'Quicksand', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .note-close:hover{
+    background:var(--rose);
+  }
+</style>
+</head>
+<body>
+ 
+<div class="title-wrap">
+  <h1>Khushi's Bouquet</h1>
+  <p class="subtitle">a little garden made just for you</p>
+</div>
+ 
+<div class="hud">
+  <div class="hud-item">
+    <div class="hud-label">Score</div>
+    <div class="hud-value" id="score">0</div>
+  </div>
+  <div class="hud-item">
+    <div class="hud-label">To the surprise</div>
+    <div class="goal-bar"><div class="goal-fill" id="goalFill"></div></div>
+  </div>
+</div>
+ 
+<div id="board"></div>
+ 
+<button id="resetBtn">Start over</button>
+<p class="footer-note">Match three or more flowers in a row to clear them. Reach 300 points to find something waiting for you 🌸</p>
+ 
+<div class="overlay" id="overlay">
+  <div class="note-card">
+    <div class="note-bouquet">💐</div>
+    <!-- Replace "her-photo.jpg" below with your image file, kept in the same folder as this html file -->
+    <img class="note-photo" src="C:\Users\91600\Desktop\khushi\WhatsApp Image 2026-09-08 at 9.34.22 AM.jpeg" alt="" onerror="this.style.display='none'">
+    <div class="note-heading">For my Khushi</div>
+    <div class="note-body" id="noteBody">Sakshi,
+ 
+I built you a tiny garden because you deserve flowers on days that aren't even special — just ordinary Tuesdays where I'm thinking about you anyway.
+ 
+Every bouquet you've ever loved, every silly photo you send me making a face at the camera, every little "guess what happened today" text — I keep all of it, closer than you probably realize.
+ 
+You didn't just clear a board full of flowers. You reminded me why I like giving you things, even small, silly, made-in-a-few-hours things — because I like seeing you smile more than I like almost anything else.
+ 
+Happy playing, my Khushi. There's more where this came from.
+ 
+— always yours(aru eta kotha kintu navabibi moi tuk atiyao relationship t ahibo force  asu buli its totally upto you) </div>
+    <button class="note-close" id="closeNote">close, but keep this 🤍</button>
+  </div>
+</div>
+ 
+<script>
+const FLOWERS = ['🌹','🌷','🌻','🌸','🌺'];
+const SIZE = 6;
+const GOAL = 300;
+let board = [];
+let score = 0;
+let selected = null;
+let locked = false;
+let noteShown = false;
+ 
+const boardEl = document.getElementById('board');
+const scoreEl = document.getElementById('score');
+const goalFillEl = document.getElementById('goalFill');
+const overlay = document.getElementById('overlay');
+ 
+function randFlower(){
+  return FLOWERS[Math.floor(Math.random()*FLOWERS.length)];
+}
+ 
+function createBoard(){
+  board = [];
+  for(let r=0;r<SIZE;r++){
+    let row = [];
+    for(let c=0;c<SIZE;c++){
+      let val;
+      do{
+        val = randFlower();
+      } while(
+        (c>=2 && row[c-1]===val && row[c-2]===val) ||
+        (r>=2 && board[r-1][c]===val && board[r-2][c]===val)
+      );
+      row.push(val);
+    }
+    board.push(row);
+  }
+}
+ 
+function render(){
+  boardEl.innerHTML = '';
+  for(let r=0;r<SIZE;r++){
+    for(let c=0;c<SIZE;c++){
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.dataset.r = r;
+      tile.dataset.c = c;
+      tile.textContent = board[r][c] || '';
+      if(selected && selected.r===r && selected.c===c){
+        tile.classList.add('selected');
+      }
+      tile.addEventListener('click', onTileClick);
+      boardEl.appendChild(tile);
+    }
+  }
+}
+ 
+function onTileClick(e){
+  if(locked) return;
+  const r = parseInt(e.currentTarget.dataset.r);
+  const c = parseInt(e.currentTarget.dataset.c);
+  if(!selected){
+    selected = {r,c};
+    render();
+    return;
+  }
+  const dr = Math.abs(selected.r - r);
+  const dc = Math.abs(selected.c - c);
+  const adjacent = (dr+dc===1);
+  if(selected.r===r && selected.c===c){
+    selected = null;
+    render();
+    return;
+  }
+  if(!adjacent){
+    selected = {r,c};
+    render();
+    return;
+  }
+  swap(selected, {r,c});
+}
+ 
+function swap(a,b){
+  locked = true;
+  const tmp = board[a.r][a.c];
+  board[a.r][a.c] = board[b.r][b.c];
+  board[b.r][b.c] = tmp;
+  selected = null;
+  render();
+ 
+  const matches = findMatches();
+  if(matches.size===0){
+    // revert
+    setTimeout(()=>{
+      const tmp2 = board[a.r][a.c];
+      board[a.r][a.c] = board[b.r][b.c];
+      board[b.r][b.c] = tmp2;
+      render();
+      locked = false;
+    }, 250);
+  } else {
+    setTimeout(()=>resolveMatches(), 150);
+  }
+}
+ 
+function findMatches(){
+  const matched = new Set();
+  for(let r=0;r<SIZE;r++){
+    let run=[0];
+    for(let c=1;c<SIZE;c++){
+      if(board[r][c] && board[r][c]===board[r][c-1]){
+        run.push(c);
+      } else {
+        if(run.length>=3) run.forEach(cc=>matched.add(r+','+cc));
+        run=[c];
+      }
+    }
+    if(run.length>=3) run.forEach(cc=>matched.add(r+','+cc));
+  }
+  for(let c=0;c<SIZE;c++){
+    let run=[0];
+    for(let r=1;r<SIZE;r++){
+      if(board[r][c] && board[r][c]===board[r-1][c]){
+        run.push(r);
+      } else {
+        if(run.length>=3) run.forEach(rr=>matched.add(rr+','+c));
+        run=[r];
+      }
+    }
+    if(run.length>=3) run.forEach(rr=>matched.add(rr+','+c));
+  }
+  return matched;
+}
+ 
+function resolveMatches(){
+  const matches = findMatches();
+  if(matches.size===0){
+    locked = false;
+    return;
+  }
+  // mark matched visually
+  matches.forEach(key=>{
+    const [r,c] = key.split(',').map(Number);
+    const el = boardEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+    if(el) el.classList.add('matched');
+  });
+ 
+  score += matches.size * 10;
+  updateHud();
+ 
+  setTimeout(()=>{
+    matches.forEach(key=>{
+      const [r,c] = key.split(',').map(Number);
+      board[r][c] = null;
+    });
+    dropTiles();
+    render();
+    setTimeout(()=>resolveMatches(), 200);
+  }, 300);
+}
+ 
+function dropTiles(){
+  for(let c=0;c<SIZE;c++){
+    let colVals = [];
+    for(let r=0;r<SIZE;r++){
+      if(board[r][c]) colVals.push(board[r][c]);
+    }
+    const missing = SIZE - colVals.length;
+    const newVals = [];
+    for(let i=0;i<missing;i++) newVals.push(randFlower());
+    const fullCol = newVals.concat(colVals);
+    for(let r=0;r<SIZE;r++){
+      board[r][c] = fullCol[r];
+    }
+  }
+}
+ 
+function updateHud(){
+  scoreEl.textContent = score;
+  const pct = Math.min(100, Math.round((score/GOAL)*100));
+  goalFillEl.style.width = pct + '%';
+  if(score >= GOAL && !noteShown){
+    noteShown = true;
+    setTimeout(()=>{
+      overlay.classList.add('show');
+    }, 400);
+  }
+}
+ 
+document.getElementById('closeNote').addEventListener('click', ()=>{
+  overlay.classList.remove('show');
+});
+ 
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  score = 0;
+  noteShown = false;
+  selected = null;
+  locked = false;
+  updateHud();
+  createBoard();
+  // avoid pre-existing matches causing instant chain on load
+  while(findMatches().size>0){
+    createBoard();
+  }
+  render();
+});
+ 
+createBoard();
+while(findMatches().size>0){
+  createBoard();
+}
+render();
+updateHud();
+</script>
+ 
+</body>
+</html>
